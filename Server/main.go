@@ -5,18 +5,30 @@ import (
     "net/http"
     "github.com/gorilla/mux"
     "html/template"
-    "github.com/unrolled/render"
 )
- 
+
 func main() {
-    renderObj := render.New()
     router := mux.NewRouter()
-    
+
     router.HandleFunc("/catalogue", CatalogueHandler)
     router.HandleFunc("/home", HomeHandler)
+    router.PathPrefix("/").Handler(http.FileServer(http.Dir("./Public/")))
+    
     http.ListenAndServe(":3000", router)
 }
- 
+
+/*
+func push(w http.ResponseWriter, resource string) {
+	pusher, ok := w.(http.Pusher)
+	if ok {
+		if err := pusher.Push(resource, nil); err == nil {
+			fmt.Printf("Failed to push: %v", err)
+            return
+		}
+	}
+}
+*/
+
 func CatalogueHandler(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     title := vars["title"]
@@ -27,6 +39,12 @@ func CatalogueHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
+    //push(w, "./Public/css/style.css")
     w.Header().Set("Content-Type", "text/html; charset=utf-8")
-    
+    homeTemplate, err := template.ParseFiles("./Components/Home/home.html")
+    if err != nil {
+		fmt.Println(err)
+	}
+	homeTemplate.Execute(w, nil)
 }
+
